@@ -7,10 +7,10 @@
 
 ### 📅 프로젝트 현황 (Project Status)
 
-| 주차 | 프로젝트명 | 기간 | 기술 스택 | 링크 | 상태 |
+| Week | Project Name | Period | Tech Stack | Details | Status |
 |:---:|:---|:---:|:---|:---:|:---:|
-| 1주차 | [첫 번째 프로젝트명] | 26.03.23 ~ | Python | [이동](./projects/01_project) | 🏃 진행 중 |
-| 2주차 | [두 번째 프로젝트명] | 예정 | - | - | ⏳ 대기 |
+| Week 1 | [첫 번째 프로젝트명] | 26.03.23 ~ | Python | [View](./projects/01_project) | 🏃 In Progress |
+| 2주차 | [Upcoming Project] | - | - | - | ⏳ Planned |
 
 ---
 
