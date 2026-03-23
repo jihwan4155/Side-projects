@@ -3,6 +3,9 @@
 매주 하나씩 미니 프로젝트를 진행하며 학습 과정을 기록하는 저장소입니다.  
 꾸준한 기록을 통해 개발 실력을 쌓고 성장을 확인하는 것이 목표입니다.
 
+A collection of weekly mini-projects focused on consistent growth and documentation. 
+My goal is to enhance my development skills and track my progress through daily logs.
+
 ---
 
 ### 📅 프로젝트 현황 (Project Status)
