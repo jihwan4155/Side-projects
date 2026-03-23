@@ -1,11 +1,11 @@
-# 📂 Mini Projects Archive
+## 📂 Mini Projects Archive
 
 매주 하나씩 미니 프로젝트를 진행하며 학습 과정을 기록하는 저장소입니다.  
 꾸준한 기록을 통해 개발 실력을 쌓고 성장을 확인하는 것이 목표입니다.
 
 ---
 
-## 📅 프로젝트 현황 (Project Status)
+### 📅 프로젝트 현황 (Project Status)
 
 | 주차 | 프로젝트명 | 기간 | 기술 스택 | 링크 | 상태 |
 |:---:|:---|:---:|:---|:---:|:---:|
@@ -14,7 +14,7 @@
 
 ---
 
-## 📝 학습 로그 (Daily Logs)
+### 📝 학습 로그 (Daily Logs)
 
 매일 작업한 내용과 고민한 흔적은 각 프로젝트 폴더 안의 `log.md` 파일에 기록합니다.
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🛠️ 사용 기술 및 환경 (Tech Stack)
+### 🛠️ 사용 기술 및 환경 (Tech Stack)
 
 - **Languages:** Python, HTML/CSS, JavaScript (등등)
 - **Tools:** VS Code, Git/GitHub
@@ -32,5 +32,5 @@
 
 ---
 
-## 📜 License
+### 📜 License
 This project is licensed under the [MIT License](./LICENSE).
