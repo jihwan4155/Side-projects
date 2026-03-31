@@ -35,4 +35,35 @@ for news in news_list:
     # title의 b태그 제거, 특수문자 지우기
     link = news['link']
 
-    
+import sqlite3 # SQLite 데이터베이스 모듈
+
+# 1. 현재 실행 중인 이 파일(main.py)의 절대 경로를 찾습니다.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 2. 그 경로 뒤에 DB 이름을 붙여줍니다. (폴더 경로 + 파일 이름)
+db_path = os.path.join(BASE_DIR, 'news_dashboard.db')
+
+conn = sqlite3.connect(db_path) # DB 연결
+
+cursor = conn.cursor() # 커서 생성
+
+# 테이블 생성
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS news(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,       -- 뉴스 제목
+    link TEXT UNIQUE NOT NULL, -- 뉴스 링크 (UNIQUE로 중복 링크 방지)
+    pub_date TEXT,              -- 뉴스 날짜
+    is_read INTEGER DEFAULT 0  -- 0은 '안 읽음', 1은 '읽음'
+)
+''')
+
+news_title = "'메모리가 GPU를 삼킨다'… HBM의 아버지 김정호 교수의 경고"
+news_link = "https://www.ajunews.com/view/20260330165729378"
+news_date = "2026-03-30"
+
+sql = "INSERT INTO news (title, link, pub_date, is_read) VALUES (?, ?, ?, ?)"
+cursor.execute(sql, (news_title, news_link, news_date, 0))
+
+conn.commit() # 변경 사항 저장 (안하면 DB 파일에 반영 X)
+
+print("뉴스 저장 완료")
