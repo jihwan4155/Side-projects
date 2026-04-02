@@ -18,7 +18,7 @@ def create_project(project_name):
     os.makedirs(project_path)
     
     # 3. 템플릿 설정
-    log_template = f"# 📅 Project Log: {project_name}\n\n## 📝 데일리 기록\n\n### {datetime.now().strftime('%Y-%m-%d')} (Day 1)\n- **오늘의 목표:** \n- **진행 상황:** \n- **오늘의 도전 & 해결 (TIL):** \n- **내일의 할 일:** \n---\n"
+    log_template = f"# 📅 Project Log: {project_name}\n\n## 📝 데일리 기록\n\n### {datetime.now().strftime('%Y-%m-%d')} (Day 1)\n- **오늘의 목표:** \n- **진행 상황:** \n- **오늘의 도전 & 해결 (TIL):** \n- **다음 할 일:** \n---\n"
     
     # 4. 파일 생성
     files = {
