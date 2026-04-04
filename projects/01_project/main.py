@@ -74,6 +74,7 @@ def fetch_and_save_news(keyword):
     else:
         print(f"에러 발생: {response.status_code}")
 
+
 # 키워드를 저장할 표 생성
 cursor.execute("CREATE TABLE IF NOT EXISTS keywords (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
 # 검색하고 싶은 키워드를 미리 넣기
@@ -87,5 +88,68 @@ keywords = [row[0] for row in cursor.fetchall()]
 for keyword in keywords:
     fetch_and_save_news(keyword)
 
-# 작업이 다 끝나면 닫기
+
+def get_unread_news():
+    """DB에서 읽지 않은 뉴스 목록을 가져와 출력하는 함수"""
+    cursor.execute("SELECT id, title, link FROM news WHERE is_read = 0")
+    unread_list = cursor.fetchall()
+
+    if not unread_list:
+        print("\n✅ 모든 뉴스를 다 읽으셨습니다!")
+        return
+    
+    print(f"\n--- [읽지 않은 뉴스 목록 ({len(unread_list)}개)] ---")
+    for news in unread_list:
+        print(f"[{news[0]}] {news[1]}")
+        print(f"    링크: {news[2]}")
+    print("-" * 40)
+
+def mark_as_read(news_id):
+    """특정 ID의 뉴스를 읽음 처리하는 함수"""
+    cursor.execute("UPDATE news SET is_read = 1 WHERE id = ?", (news_id,))
+    conn.commit()
+    print(f"\n✔ {news_id}번 뉴스를 읽음 처리했습니다.")
+
+
+while True:
+    # 무한 루프 메뉴 구성
+    print("\n--- 📰 뉴스 대시보드 ---")
+    print("1. 새로운 뉴스 수집")
+    print("2. 읽지 않은 뉴스 보기")
+    print("3. 뉴스 읽음 처리")
+    print("4. 종료")
+
+    choice = input("원하는 작업 번호를 입력하세요:  ")
+    
+    if choice == "1":
+        # 1. DB에서 키워드 목록 가져오기
+        cursor.execute("SELECT name FROM keywords")
+        keywords = [row[0] for row in cursor.fetchall()]
+
+        print(f"\n{len(keywords)}개의 키워드로 뉴스를 수집합니다...")
+        for kw in keywords:
+            fetch_and_save_news(kw)
+    
+    elif choice == "2":
+        # 2. 안 읽은 뉴스 출력 함수
+        get_unread_news()
+    
+    elif choice == "3":
+        # 3. 사용자에게 ID를 입력받아 읽음 처리
+        target_id = input("읽음 처리할 뉴스 번호(ID)를 입력하세요:  ")
+        # 입력받은 ID가 숫자인지 확인
+        if target_id.isdigit():
+            mark_as_read(int(target_id))
+        else:
+            print("⚠️ 숫자 번호를 입력해 주세요.")
+    
+    elif choice == "4":
+        # 4. 루프 탈출 및 종료
+        print("\n오늘의 뉴스 읽기 습관, 성공적! 프로그램을 종료합니다. 👋")
+        break
+
+    else:
+        print("\n⚠️ 잘못된 번호입니다. 1~4 사이의 숫자를 입력해 주세요.")
+
+# 루프 끝나면 안전하게 DB 연결 종료
 conn.close()
