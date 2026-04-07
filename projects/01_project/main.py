@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import sqlite3 # SQLite 데이터베이스 모듈
+import webbrowser
 
 # 환경 변수로 env 파일의 API키 가져오기
 load_dotenv()
@@ -111,13 +112,51 @@ def mark_as_read(news_id):
     print(f"\n✔ {news_id}번 뉴스를 읽음 처리했습니다.")
 
 
+def read_news(news_id):
+    """뉴스를 브라우저로 열고, DB 상태를 읽음으로 변경"""
+    # 해당 ID의 링크 가져오기
+    cursor.execute("SELECT link FROM news WHERE id = ?", (news_id,))
+    result = cursor.fetchone()
+    
+    if result:
+        url = result[0]
+        # 브라우저로 열기
+        print(f"\n🌐 브라우저에서 뉴스를 엽니다: {url}")
+        webbrowser.open(url)
+        
+        # 읽음 처리 
+        mark_as_read(news_id)
+    else:
+        print("⚠️ 해당 번호의 뉴스를 찾을 수 없습니다.")
+
+
+def search_news(keyword):
+    """제목에 키워드가 포함된 뉴스 검색"""
+    query_keyword = f"%{keyword}%"
+    cursor.execute("SELECT id, title, is_read FROM news WHERE title LIKE ?", (query_keyword,))
+    results = cursor.fetchall() # 리스트 형태로 가져옴
+
+    if not results:
+        print(f"\n🔎 '{keyword}'(이)가 포함된 뉴스가 없습니다.")
+    else:
+        print(f"\n🔎 '{keyword}' 검색 결과 ({len(results)}건):")
+        for row in results:
+            status = "✅" if row[2] == 1 else "🆕"
+            print(f"[{row[0]}] {status} {row[1]}")
+
+
 while True:
     # 무한 루프 메뉴 구성
-    print("\n--- 📰 뉴스 대시보드 ---")
-    print("1. 새로운 뉴스 수집")
-    print("2. 읽지 않은 뉴스 보기")
-    print("3. 뉴스 읽음 처리")
-    print("4. 종료")
+    print("\n" + "="*30)
+    print(" 📰 지환의 뉴스 대시보드 ")
+    print("="*30)
+    print("1. 🔄 새로운 뉴스 수집")
+    print("2. 📋 읽지 않은 뉴스 보기")
+    print("3. ✅ 뉴스 간단 읽음 처리 (ID 입력)")
+    print("4. 🔎 뉴스 검색하기")
+    print("5. 🌐 뉴스 읽기 (브라우저 열기)")
+    print("6. ❌ 프로그램 종료")
+    print("="*30)
 
     choice = input("원하는 작업 번호를 입력하세요:  ")
     
@@ -125,7 +164,6 @@ while True:
         # 1. DB에서 키워드 목록 가져오기
         cursor.execute("SELECT name FROM keywords")
         keywords = [row[0] for row in cursor.fetchall()]
-
         print(f"\n{len(keywords)}개의 키워드로 뉴스를 수집합니다...")
         for kw in keywords:
             fetch_and_save_news(kw)
@@ -144,12 +182,19 @@ while True:
             print("⚠️ 숫자 번호를 입력해 주세요.")
     
     elif choice == "4":
-        # 4. 루프 탈출 및 종료
-        print("\n오늘의 뉴스 읽기 습관, 성공적! 프로그램을 종료합니다. 👋")
+        word = input("검색할 키워드를 입력하세요: ")
+        search_news(word)
+
+    elif choice == "5":
+        news_id = input("읽을 뉴스 번호를 입력하세요: ")
+        read_news(news_id)
+    
+    elif choice == "6":
+        print("\n오늘의 뉴스 읽기 습관, 성공적! 종료합니다. 👋")
         break
 
     else:
-        print("\n⚠️ 잘못된 번호입니다. 1~4 사이의 숫자를 입력해 주세요.")
+        print("\n⚠️ 잘못된 번호입니다. 1~6 사이의 숫자를 입력해 주세요.")
 
 # 루프 끝나면 안전하게 DB 연결 종료
 conn.close()
