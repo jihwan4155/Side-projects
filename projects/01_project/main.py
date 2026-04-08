@@ -92,7 +92,7 @@ for keyword in keywords:
 
 def get_unread_news():
     """DB에서 읽지 않은 뉴스 목록을 가져와 출력하는 함수"""
-    cursor.execute("SELECT id, title, link FROM news WHERE is_read = 0")
+    cursor.execute("SELECT id, title, link FROM news WHERE is_read = 0 ORDER BY id DESC")
     unread_list = cursor.fetchall()
 
     if not unread_list:
@@ -146,6 +146,13 @@ def search_news(keyword):
 
 
 while True:
+    # 통계
+    cursor.execute("SELECT COUNT(*) FROM news")
+    total = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM news WHERE is_read = 1")
+    read_count = cursor.fetchone()[0]
+    print(f"\n📊 [오늘의 현황] 총 뉴스: {total}개 | 읽은 뉴스: {read_count}개")
+
     # 무한 루프 메뉴 구성
     print("\n" + "="*30)
     print(" 📰 지환의 뉴스 대시보드 ")
@@ -192,6 +199,22 @@ while True:
     elif choice == "6":
         print("\n오늘의 뉴스 읽기 습관, 성공적! 종료합니다. 👋")
         break
+
+    elif choice == "7":
+        print("\n🔎 [수집 데이터 분포 분석]")
+        # 현재는 keyword 컬럼이 없으니 제목에 특정 단어가 포함된 비율을 보는 로직으로 대체하거나,
+        # 추후 테이블에 keyword 컬럼을 추가하는 숙제로 남겨둘 수 있습니다.
+        cursor.execute("SELECT COUNT(*) FROM news")
+        total = cursor.fetchone()[0]
+        
+        # 임시로 '오타니' 뉴스 비중 계산 예시
+        cursor.execute("SELECT COUNT(*) FROM news WHERE title LIKE '%오타니%'")
+        otani_count = cursor.fetchone()[0]
+        
+        if total > 0:
+            print(f"- 전체 뉴스 중 '오타니' 관련: {otani_count}개 ({otani_count/total*100:.1f}%)")
+        else:
+            print("데이터가 부족합니다.")
 
     else:
         print("\n⚠️ 잘못된 번호입니다. 1~6 사이의 숫자를 입력해 주세요.")
