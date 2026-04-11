@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>지환의 뉴스 대시보드</title>
+</head>
+<body>
+  <h1>📰 지환의 뉴스 대시보드 (Web Ver.)</h1>
+  <p>지환의 첫 웹 서비스</p>
+
+  <hr>
+
+  <h3>🔥 최신 뉴스 미리보기 (Top 5)</h3>
+  <ul>
+      {% for news in news_list %}
+      <li>
+        <strong>{{ news['title'] }}</strong> 
+        <small>({{ news['pub_date'] }})</small>
+      </li>
+      {% endfor %}
+  </ul>
+
+  <p><a href="#">모든 뉴스 보러 가기 (8일차 구현 예정)</a></p>
+
+</body>
+</html>

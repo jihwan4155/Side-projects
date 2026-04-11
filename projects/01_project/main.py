@@ -6,32 +6,30 @@ import webbrowser
 
 # 환경 변수로 env 파일의 API키 가져오기
 load_dotenv()
-client_id = os.getenv("NAVER_CLIENT_ID")
-client_secret = os.getenv("NAVER_CLIENT_SECRET") 
-
+CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
+CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
 # 1. 현재 실행 중인 이 파일(main.py)의 절대 경로를 찾습니다.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 2. 그 경로 뒤에 DB 이름을 붙여줍니다. (폴더 경로 + 파일 이름)
 db_path = os.path.join(BASE_DIR, 'news_dashboard.db')
+# 3. DB 연결 (웹 서버와의 연동을 위해 스레드 옵션 추가)
+conn = sqlite3.connect(db_path, check_same_thread=False)
+cursor = conn.cursor()
 
 
-conn = sqlite3.connect(db_path) # DB 연결
-
-cursor = conn.cursor() # 커서 생성
-
-# 테이블 생성
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS news(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,       -- 뉴스 제목
-    link TEXT UNIQUE NOT NULL, -- 뉴스 링크 (UNIQUE로 중복 링크 방지)
-    pub_date TEXT,              -- 뉴스 날짜
-    is_read INTEGER DEFAULT 0  -- 0은 '안 읽음', 1은 '읽음'
-)
-''')
-
-conn.commit() # 변경 사항 저장 (안하면 DB 파일에 반영 X)
-
+def init_db():
+    """데이터베이스 테이블 및 초기 키워드 설정"""
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS news(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        link TEXT UNIQUE NOT NULL,
+        pub_date TEXT,
+        is_read INTEGER DEFAULT 0
+    )''')
+    cursor.execute("CREATE TABLE IF NOT EXISTS keywords (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    cursor.execute("INSERT OR IGNORE INTO keywords (name) VALUES ('HBF'), ('오타니'), ('삼성전자')")
+    conn.commit()
 
 def fetch_and_save_news(keyword):
     """네이버 API에서 뉴스를 가져와 DB에 저장 함수"""
@@ -41,9 +39,8 @@ def fetch_and_save_news(keyword):
 
     # 헤더 설정 
     headers = {
-        "X-Naver-Client-Id": os.getenv("NAVER_CLIENT_ID"),    
-        "X-Naver-Client-Secret": os.getenv("NAVER_CLIENT_SECRET")
-
+        "X-Naver-Client-Id": CLIENT_ID,
+        "X-Naver-Client-Secret": CLIENT_SECRET
     }
 
     # 파라미터 설정
@@ -52,42 +49,23 @@ def fetch_and_save_news(keyword):
         "display": 5 # 가져올 뉴스 개수
     }
 
-    # 요청 (헤더와 파라미터 같이)
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200: # 정상 연결시
-        items = response.json().get('items', [])
-        # json 요청하고 딕셔너리로 파씽
-
-        for item in items:
-            # 데이터 가공
-            clean_title = item['title'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
-            # title의 b태그 제거, 특수문자 지우기
-            link = item['link']
-            pub_date = item['pubDate']
-
-            # DB 저장 (Ignore INTO => 중복 무시)
-            sql = "INSERT or IGNORE INTO news (title, link, pub_date) VALUES (?, ?, ?)"
-            cursor.execute(sql, (clean_title, link, pub_date))
-
-        conn.commit()
-        print(f"'{keyword}'관련 뉴스 수집 및 저장 완료!")
-    else:
-        print(f"에러 발생: {response.status_code}")
-
-
-# 키워드를 저장할 표 생성
-cursor.execute("CREATE TABLE IF NOT EXISTS keywords (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
-# 검색하고 싶은 키워드를 미리 넣기
-cursor.execute("INSERT OR IGNORE INTO keywords (name) VALUES ('HBF'), ('오타니'), ('삼성전자')")
-conn.commit()
-
-# DB에서 키워드를 가져오기
-cursor.execute("SELECT name FROM keywords")
-keywords = [row[0] for row in cursor.fetchall()]
-
-for keyword in keywords:
-    fetch_and_save_news(keyword)
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            items = response.json().get('items', [])
+            for item in items:
+                # b 태그 및 특수문자 제거
+                clean_title = item['title'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
+                cursor.execute(
+                    "INSERT OR IGNORE INTO news (title, link, pub_date) VALUES (?, ?, ?)",
+                    (clean_title, item['link'], item['pubDate'])
+                )
+            conn.commit()
+            print(f"'{keyword}' 관련 뉴스 수집 완료!")
+        else:
+            print(f"⚠️ API 요청 에러: {response.status_code}")
+    except Exception as e:
+        print(f"❌ 수집 중 오류 발생: {e}")
 
 
 def get_unread_news():
@@ -145,79 +123,92 @@ def search_news(keyword):
             print(f"[{row[0]}] {status} {row[1]}")
 
 
-while True:
-    # 통계
-    cursor.execute("SELECT COUNT(*) FROM news")
-    total = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM news WHERE is_read = 1")
-    read_count = cursor.fetchone()[0]
-    print(f"\n📊 [오늘의 현황] 총 뉴스: {total}개 | 읽은 뉴스: {read_count}개")
+if __name__ == "__main__":
+    # 1. DB 초기화 (테이블 없으면 만들기)
+    init_db()
 
-    # 무한 루프 메뉴 구성
-    print("\n" + "="*30)
-    print(" 📰 지환의 뉴스 대시보드 ")
-    print("="*30)
-    print("1. 🔄 새로운 뉴스 수집")
-    print("2. 📋 읽지 않은 뉴스 보기")
-    print("3. ✅ 뉴스 간단 읽음 처리 (ID 입력)")
-    print("4. 🔎 뉴스 검색하기")
-    print("5. 🌐 뉴스 읽기 (브라우저 열기)")
-    print("6. ❌ 프로그램 종료")
-    print("="*30)
+    # 2. 뉴스 수집 (main.py를 직접 실행할 때만 동작!)
+    cursor.execute("SELECT name FROM keywords")
+    keywords = [row[0] for row in cursor.fetchall()]
 
-    choice = input("원하는 작업 번호를 입력하세요:  ")
-    
-    if choice == "1":
-        # 1. DB에서 키워드 목록 가져오기
-        cursor.execute("SELECT name FROM keywords")
-        keywords = [row[0] for row in cursor.fetchall()]
-        print(f"\n{len(keywords)}개의 키워드로 뉴스를 수집합니다...")
-        for kw in keywords:
-            fetch_and_save_news(kw)
-    
-    elif choice == "2":
-        # 2. 안 읽은 뉴스 출력 함수
-        get_unread_news()
-    
-    elif choice == "3":
-        # 3. 사용자에게 ID를 입력받아 읽음 처리
-        target_id = input("읽음 처리할 뉴스 번호(ID)를 입력하세요:  ")
-        # 입력받은 ID가 숫자인지 확인
-        if target_id.isdigit():
-            mark_as_read(int(target_id))
-        else:
-            print("⚠️ 숫자 번호를 입력해 주세요.")
-    
-    elif choice == "4":
-        word = input("검색할 키워드를 입력하세요: ")
-        search_news(word)
+    print("🚀 터미널 모드: 뉴스를 수집합니다...")
 
-    elif choice == "5":
-        news_id = input("읽을 뉴스 번호를 입력하세요: ")
-        read_news(news_id)
-    
-    elif choice == "6":
-        print("\n오늘의 뉴스 읽기 습관, 성공적! 종료합니다. 👋")
-        break
+    for keyword in keywords:
+        fetch_and_save_news(keyword)
 
-    elif choice == "7":
-        print("\n🔎 [수집 데이터 분포 분석]")
-        # 현재는 keyword 컬럼이 없으니 제목에 특정 단어가 포함된 비율을 보는 로직으로 대체하거나,
-        # 추후 테이블에 keyword 컬럼을 추가하는 숙제로 남겨둘 수 있습니다.
+    while True:
+        # 통계
         cursor.execute("SELECT COUNT(*) FROM news")
         total = cursor.fetchone()[0]
-        
-        # 임시로 '오타니' 뉴스 비중 계산 예시
-        cursor.execute("SELECT COUNT(*) FROM news WHERE title LIKE '%오타니%'")
-        otani_count = cursor.fetchone()[0]
-        
-        if total > 0:
-            print(f"- 전체 뉴스 중 '오타니' 관련: {otani_count}개 ({otani_count/total*100:.1f}%)")
-        else:
-            print("데이터가 부족합니다.")
+        cursor.execute("SELECT COUNT(*) FROM news WHERE is_read = 1")
+        read_count = cursor.fetchone()[0]
+        print(f"\n📊 [오늘의 현황] 총 뉴스: {total}개 | 읽은 뉴스: {read_count}개")
 
-    else:
-        print("\n⚠️ 잘못된 번호입니다. 1~6 사이의 숫자를 입력해 주세요.")
+        # 무한 루프 메뉴 구성
+        print("\n" + "="*30)
+        print(" 📰 지환의 뉴스 대시보드 ")
+        print("="*30)
+        print("1. 🔄 새로운 뉴스 수집")
+        print("2. 📋 읽지 않은 뉴스 보기")
+        print("3. ✅ 뉴스 간단 읽음 처리 (ID 입력)")
+        print("4. 🔎 뉴스 검색하기")
+        print("5. 🌐 뉴스 읽기 (브라우저 열기)")
+        print("6. ❌ 프로그램 종료")
+        print("="*30)
+
+        choice = input("원하는 작업 번호를 입력하세요:  ")
+        
+        if choice == "1":
+            # 1. DB에서 키워드 목록 가져오기
+            cursor.execute("SELECT name FROM keywords")
+            keywords = [row[0] for row in cursor.fetchall()]
+            print(f"\n{len(keywords)}개의 키워드로 뉴스를 수집합니다...")
+            for kw in keywords:
+                fetch_and_save_news(kw)
+        
+        elif choice == "2":
+            # 2. 안 읽은 뉴스 출력 함수
+            get_unread_news()
+        
+        elif choice == "3":
+            # 3. 사용자에게 ID를 입력받아 읽음 처리
+            target_id = input("읽음 처리할 뉴스 번호(ID)를 입력하세요:  ")
+            # 입력받은 ID가 숫자인지 확인
+            if target_id.isdigit():
+                mark_as_read(int(target_id))
+            else:
+                print("⚠️ 숫자 번호를 입력해 주세요.")
+        
+        elif choice == "4":
+            word = input("검색할 키워드를 입력하세요: ")
+            search_news(word)
+
+        elif choice == "5":
+            news_id = input("읽을 뉴스 번호를 입력하세요: ")
+            read_news(news_id)
+        
+        elif choice == "6":
+            print("\n오늘의 뉴스 읽기 습관, 성공적! 종료합니다. 👋")
+            break
+
+        elif choice == "7":
+            print("\n🔎 [수집 데이터 분포 분석]")
+            # 현재는 keyword 컬럼이 없으니 제목에 특정 단어가 포함된 비율을 보는 로직으로 대체하거나,
+            # 추후 테이블에 keyword 컬럼을 추가하는 숙제로 남겨둘 수 있습니다.
+            cursor.execute("SELECT COUNT(*) FROM news")
+            total = cursor.fetchone()[0]
+            
+            # 임시로 '오타니' 뉴스 비중 계산 예시
+            cursor.execute("SELECT COUNT(*) FROM news WHERE title LIKE '%오타니%'")
+            otani_count = cursor.fetchone()[0]
+            
+            if total > 0:
+                print(f"- 전체 뉴스 중 '오타니' 관련: {otani_count}개 ({otani_count/total*100:.1f}%)")
+            else:
+                print("데이터가 부족합니다.")
+
+        else:
+            print("\n⚠️ 잘못된 번호입니다. 1~6 사이의 숫자를 입력해 주세요.")
 
 # 루프 끝나면 안전하게 DB 연결 종료
 conn.close()
