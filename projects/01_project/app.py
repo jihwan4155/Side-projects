@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sqlite3
 import main
 
@@ -12,12 +12,23 @@ def get_db_connections():
 
 @app.route('/')
 def index():
+    selected_keyword = request.args.get('keyword')
     # 서버 작동 확인용 데이터
     conn = get_db_connections()
-    news_data = conn.execute('SELECT * FROM news ORDER BY id DESC LIMIT 5').fetchall()
+    keywords = conn.execute('SELECT name FROM keywords').fetchall()
+    
+    if selected_keyword:
+        query = "SELECT * FROM news WHERE title LIKE ? ORDER BY id DESC"
+        news_data = conn.execute(query, ('%' + selected_keyword + '%',)).fetchall()
+    else:
+        news_data = conn.execute('SELECT * FROM news ORDER BY id DESC LIMIT 10').fetchall()
+    
     conn.close()
 
-    return render_template('index.html', news_list=news_data)
+    return render_template('index.html', 
+                           news_list=news_data, 
+                           keyword_list=keywords, 
+                           active_keyword=selected_keyword)
 
 if __name__ == '__main__':
     # 서버 실행

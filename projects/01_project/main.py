@@ -4,6 +4,7 @@ import requests
 import sqlite3 # SQLite 데이터베이스 모듈
 import webbrowser
 
+
 # 환경 변수로 env 파일의 API키 가져오기
 load_dotenv()
 CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
