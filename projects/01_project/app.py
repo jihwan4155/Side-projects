@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 import main
 
@@ -29,6 +29,25 @@ def index():
                            news_list=news_data, 
                            keyword_list=keywords, 
                            active_keyword=selected_keyword)
+
+@app.route('/add_keyword', methods=['POST'])
+def add_keyword():
+    new_kw = request.form.get('keyword_name')
+    if new_kw:
+        conn = get_db_connections()
+        conn.execute("INSERT OR IGNORE INTO keywords (name) VALUES (?)", (new_kw,))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('index'))
+
+@app.route('/delete_keyword/<string:name>')
+def delete_keyword(name):
+    conn = get_db_connections()
+    conn.execute("DELETE FROM keywords WHERE name = ?", (name,))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     # 서버 실행
