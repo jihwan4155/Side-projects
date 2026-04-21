@@ -10,10 +10,10 @@ My goal is to enhance my development skills and track my progress through daily 
 
 ### 📅 프로젝트 현황 (Project Status)
 
-| Week | Project Name | Period | Tech Stack | Details | Status |
+| Project Number | Project Name | Period | Tech Stack | Details | Status |
 |:---:|:---|:---:|:---|:---:|:---:|
-| Week 1 | [첫 번째 프로젝트명] | 26.03.30 ~ | Python | [View](./projects/01_project) | 🏃 In Progress |
-| 2주차 | [Upcoming Project] | - | - | - | ⏳ Planned |
+| 1 | [첫 번째 프로젝트명] | 26.03.30 ~ | Python | [View](./projects/01_project) | 🏃 In Progress |
+| 2 | [Upcoming Project] | - | - | - | ⏳ Planned |
 
 ---
 
