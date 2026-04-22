@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 import main
+from main import fetch_and_save_news
+
 
 app = Flask(__name__)
 
@@ -15,7 +17,15 @@ def index():
     selected_keyword = request.args.get('keyword')
     # 서버 작동 확인용 데이터
     conn = get_db_connections()
-    keywords = conn.execute('SELECT name FROM keywords').fetchall()
+    
+    query_keywords = """
+        SELECT k.name, COUNT(n.id) as news_count 
+        FROM keywords k 
+        LEFT JOIN news n ON n.title LIKE '%' || k.name || '%'
+        GROUP BY k.name
+    """
+    
+    keywords = conn.execute(query_keywords).fetchall()
     
     if selected_keyword:
         query = "SELECT * FROM news WHERE title LIKE ? ORDER BY id DESC"
@@ -48,6 +58,21 @@ def delete_keyword(name):
     conn.close()
     
     return redirect(url_for('index'))
+
+
+@app.route('/collect')
+def collect():
+    conn = get_db_connections()
+    keywords = conn.execute('SELECT name FROM keywords').fetchall()
+    conn.close()
+
+    print("웹에서 뉴스 수집을 시작합니다...")
+    for kw in keywords:
+        fetch_and_save_news(kw['name'])
+    
+    return redirect(url_for('index'))
+
+
 
 if __name__ == '__main__':
     # 서버 실행

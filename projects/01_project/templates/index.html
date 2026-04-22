@@ -26,7 +26,12 @@
                     <button class="btn btn-primary btn-sm" type="submit">추가</button>
                 </div>
             </form>
-
+            
+            <div class="d-grid gap-2 mb-4">
+                <a href="/collect" class="btn btn-warning btn-sm">
+                   🔄 지금 뉴스 수집하기
+                </a>
+            </div>
 
             <p class="text-muted">관리 중인 키워드</p>
     
@@ -36,12 +41,19 @@
                 </a>
 
                 {% for kw in keyword_list %}
-                <a href="/?keyword={{ kw['name'] }}" 
-                    class="list-group-item list-group-item-action {{ 'active' if active_keyword == kw['name'] }}">
-                    # {{ kw['name'] }}
-                </a>
-                <a href="/delete_keyword/{{ kw['name'] }}" class="btn btn-sm text-danger" onclick="return confirm('삭제할까요?')">&times;</a>
-
+                <div class="d-flex align-items-center mb-1">
+                    <a href="/?keyword={{ kw['name'] }}" 
+                        class="list-group-item list-group-item-action {{ 'active' if active_keyword == kw['name'] }} d-flex justify-content-between align-items-center">
+                        <span># {{ kw['name'] }}</span>
+                        <span class="badge {{ 'bg-light text-dark' if active_keyword == kw['name'] else 'bg-secondary' }} rounded-pill">
+                        {{ kw['news_count'] }}
+                        </span>
+                    </a>
+    
+                    <a href="/delete_keyword/{{ kw['name'] }}" class="btn btn-sm text-danger ms-1" onclick="return confirm('삭제할까요?')">
+                        &times;
+                    </a>
+                </div>
                 {% endfor %}
             </div>
 
