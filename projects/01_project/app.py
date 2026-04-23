@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # DB 연결 함수
 def get_db_connections():
-    conn = sqlite3.connect('news_dashboard.db')
+    conn = sqlite3.connect('news_dashboard.db',)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -54,6 +54,9 @@ def add_keyword():
 def delete_keyword(name):
     conn = get_db_connections()
     conn.execute("DELETE FROM keywords WHERE name = ?", (name,))
+    
+    conn.execute("DELETE FROM news WHERE title LIKE ?", ('%' + name + '%',))
+    
     conn.commit()
     conn.close()
     
@@ -73,6 +76,19 @@ def collect():
     return redirect(url_for('index'))
 
 
+@app.route('/read_news/<int:news_id>')
+def read_news(news_id):
+    conn = get_db_connections()
+    news = conn.execute("SELECT link FROM news WHERE id = ?", (news_id,)).fetchone()
+
+    if news:
+        conn.execute("UPDATE news SET is_read = 1 WHERE id = ?", (news_id,))
+        conn.commit()
+        conn.close()
+        return redirect(news['link'])
+
+    conn.close()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     # 서버 실행

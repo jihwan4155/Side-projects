@@ -72,21 +72,34 @@
             </div>
 
             <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for news in news_list %}
-                <div class="col">
-                    <div class="card news-card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ news['title'] }}</h5>
-                            <p class="card-text text-muted small">{{ news['pub_date'] }}</p>
-                        </div>
-                        <div class="card-footer bg-transparent border-0">
-                            <a href="{{ news['link'] }}" target="_blank" class="btn btn-sm btn-primary">뉴스 읽기</a>
+                {% if news_list %}
+                    {% for news in news_list %}
+                    <div class="col">
+                        <div class="card news-card h-100 {{ 'opacity-50' if news['is_read'] == 1 }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {% if news['is_read'] == 1 %}
+                                        <span class="badge bg-light text-dark border me-1 small">읽음</span>
+                                    {% else %}
+                                        <span class="badge bg-primary me-1 small">NEW</span>
+                                    {% endif %}
+                                        {{ news['title'] }}
+                                </h5>
+                                <p class="card-text text-muted small">{{ news['pub_date'] }}</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="/read_news/{{ news['id'] }}" target="_blank" class="btn btn-sm btn-primary">뉴스 읽기</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <h3 class="text-muted">아직 수집된 뉴스가 없네요!</h3>
+                        <p>왼쪽의 [지금 뉴스 수집하기] 버튼을 눌러보세요.</p>
+                    </div>
+                {% endif %}
             </div>
-
         </main>
     </div>
 </div>
