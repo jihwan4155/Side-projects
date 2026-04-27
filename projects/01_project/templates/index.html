@@ -61,7 +61,16 @@
         </nav>
 
         <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
-            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-primary alert-dismissible fade show shadow-sm" role="alert">
+                            <strong>알림:</strong> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <div class="hero-section">
                 <h1 class="display-4">🔥 오늘의 핵심 이슈</h1>
                 <p class="lead">{{ news_list[0]['title'] if news_list else '수집된 뉴스가 없습니다.' }}</p>
@@ -83,8 +92,14 @@
                                     {% else %}
                                         <span class="badge bg-primary me-1 small">NEW</span>
                                     {% endif %}
-                                        {{ news['title'] }}
+                                    {{ news['title'] }}
                                 </h5>
+                                
+                                <p class="card-text text-muted small mt-2" 
+                                    style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; max-height: 4.5rem;">
+                                    {{ news['description'] if news['description'] else '상세 내용이 없습니다.' }}
+                                </p>
+
                                 <p class="card-text text-muted small">{{ news['pub_date'] }}</p>
                             </div>
                             <div class="card-footer bg-transparent border-0">

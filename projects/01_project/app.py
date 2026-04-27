@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 import main
 from main import fetch_and_save_news
+import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 app = Flask(__name__)
+app.secret_key = os.getenv("FALSK_SECRET_KEY", "fallback_key_for_local")
 
 # DB 연결 함수
 def get_db_connections():
@@ -28,8 +31,14 @@ def index():
     keywords = conn.execute(query_keywords).fetchall()
     
     if selected_keyword:
-        query = "SELECT * FROM news WHERE title LIKE ? ORDER BY id DESC"
-        news_data = conn.execute(query, ('%' + selected_keyword + '%',)).fetchall()
+        conn = get_db_connections()
+        query = """
+        SELECT * FROM news 
+        WHERE title LIKE ? OR description LIKE ? 
+        ORDER BY id DESC
+        """
+        search_term = f"%{selected_keyword}%"
+        news_data = conn.execute(query, (search_term, search_term)).fetchall()
     else:
         news_data = conn.execute('SELECT * FROM news ORDER BY id DESC LIMIT 10').fetchall()
     
@@ -65,14 +74,22 @@ def delete_keyword(name):
 
 @app.route('/collect')
 def collect():
-    conn = get_db_connections()
-    keywords = conn.execute('SELECT name FROM keywords').fetchall()
-    conn.close()
-
-    print("웹에서 뉴스 수집을 시작합니다...")
-    for kw in keywords:
-        fetch_and_save_news(kw['name'])
+    try:
+        conn = get_db_connections()
+        keywords = conn.execute('SELECT name FROM keywords').fetchall()
+        conn.close()
     
+        if not keywords:
+            flash("⚠️ 등록된 키워드가 없어서 수집을 시작할 수 없습니다.")
+            return redirect(url_for('index'))
+
+        for kw in keywords:
+                fetch_and_save_news(kw['name'])
+            
+        flash("최신 뉴스를 성공적으로 수집했습니다!") 
+    except Exception as e:
+        flash(f"❌ 수집 중 에러 발생: {str(e)}")
+        
     return redirect(url_for('index'))
 
 

@@ -31,6 +31,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS news(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
+        description TEXT,
         link TEXT UNIQUE NOT NULL,
         pub_date TEXT,
         is_read INTEGER DEFAULT 0
@@ -68,9 +69,15 @@ def fetch_and_save_news(keyword):
             for item in items:
                 # b 태그 및 특수문자 제거
                 clean_title = item['title'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
-                cursor.execute(
-                    "INSERT OR IGNORE INTO news (title, link, pub_date) VALUES (?, ?, ?)",
-                    (clean_title, item['link'], item['pubDate'])
+                clean_desc = item['description'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
+    
+                 # 2. 날짜 정제
+                formatted_date = format_date(item['pubDate'])
+    
+                # 3. DB 저장
+                conn.execute(
+                    "INSERT OR IGNORE INTO news (title, description, link, pub_date) VALUES (?, ?, ?, ?)",
+                    (clean_title, clean_desc, item['link'], formatted_date)
                 )
             conn.commit()
             conn.close()
