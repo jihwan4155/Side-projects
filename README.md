@@ -12,7 +12,7 @@ My goal is to enhance my development skills and track my progress through daily 
 
 | Project Number | Project Name | Period | Tech Stack | Details | Status |
 |:---:|:---|:---:|:---|:---:|:---:|
-| 1 | [첫 번째 프로젝트명] | 26.03.30 ~ | Python | [View](./projects/01_project) | 🏃 In Progress |
+| 1 | [첫 번째 프로젝트명] | 26.03.30 ~ 26.04.28 | Python, HTML | [View](./projects/01_project) | Done |
 | 2 | [Upcoming Project] | - | - | - | ⏳ Planned |
 
 ---
