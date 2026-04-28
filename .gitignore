@@ -19,7 +19,7 @@ env/
 .env
 .venv/
 .pytest_cache/
-image.png
+
 .ipynb_checkpoints
 
 node_modules/
