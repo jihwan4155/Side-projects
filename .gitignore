@@ -1,11 +1,9 @@
-# === OS (운영체제 관련) ===
 .DS_Store
 .DS_Store?
 ._*
 Thumbs.db
 desktop.ini
 
-# === IDE / Editors (편집기 및 설정 관련) ===
 .vscode/
 .idea/
 *.swp
@@ -13,7 +11,6 @@ desktop.ini
 .project
 .settings/
 
-# === Python (파이썬 가상환경 및 캐시) ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -22,10 +19,9 @@ env/
 .env
 .venv/
 .pytest_cache/
-# 데이터 분석용 (Jupyter Notebook)
+image.png
 .ipynb_checkpoints
 
-# === Web (JavaScript, Node.js 관련) ===
 node_modules/
 dist/
 build/
@@ -33,7 +29,6 @@ build/
 *.log
 .eslintcache
 
-# === Java / C / C++ (컴파일 결과물) ===
 *.class
 *.exe
 *.o
@@ -43,8 +38,8 @@ bin/
 out/
 target/
 
-# === Security (절대 올라가면 안 되는 보안 파일) ===
 .env
 *.pem
 *.key
 secrets.json
+*.db

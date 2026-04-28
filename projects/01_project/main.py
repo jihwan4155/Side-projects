@@ -4,6 +4,7 @@ import requests
 import sqlite3 # SQLite 데이터베이스 모듈
 import webbrowser
 from datetime import datetime
+import html
 
 # 환경 변수로 env 파일의 API키 가져오기
 load_dotenv()
@@ -68,8 +69,11 @@ def fetch_and_save_news(keyword):
 
             for item in items:
                 # b 태그 및 특수문자 제거
-                clean_title = item['title'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
-                clean_desc = item['description'].replace("<b>", "").replace("</b>", "").replace("&quot;", "'")
+                raw_title = html.unescape(item['title'])
+                raw_desc = html.unescape(item['description'])
+                
+                clean_title = raw_title.replace("<b>", "").replace("</b>", "")
+                clean_desc = raw_desc.replace("<b>", "").replace("</b>", "")
     
                  # 2. 날짜 정제
                 formatted_date = format_date(item['pubDate'])
@@ -179,3 +183,4 @@ if __name__ == "__main__":
         elif choice == "4": search_news(input("키워드: "))
         elif choice == "5": read_news(input("ID: "))
         elif choice == "6": break
+

@@ -1,3 +1,3 @@
 # 01_project
 
-프로젝트 설명을 적어주세요.
+![alt text](image.png)
